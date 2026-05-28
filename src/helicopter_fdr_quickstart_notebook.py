@@ -1,7 +1,7 @@
 # Helicopter FDR Analysis - Quick Start Notebook
 # Copy this structure into a Jupyter notebook for interactive analysis
 
-# ============================================================================
+# ====================================================================
 # CELL 1: Import Libraries
 # ============================================================================
 
@@ -27,11 +27,32 @@ print("✓ All libraries imported successfully!")
 # CELL 2: Load Your Data
 # ============================================================================
 
-# Replace with your actual file path
-file_path = "/path/to/your/helicopter_fdr_data.csv"
+import json
 
-# Load data
-df = pd.read_csv(file_path)
+# Load JSONLD file
+file_path = "../sample_fdr_data.jsonld"
+
+# Load and parse JSONLD data
+with open(file_path, 'r') as f:
+    fdr_data = json.load(f)
+
+# Extract flight data points
+flight_data_points = fdr_data['flightData']
+
+# Convert to DataFrame, extracting values from nested structure
+data_rows = []
+for point in flight_data_points:
+    row = {}
+    for key, value in point.items():
+        if isinstance(value, dict) and 'value' in value:
+            # Extract the numeric value from nested structure
+            row[key] = value['value']
+        elif key not in ['@type']:  # Skip metadata fields
+            row[key] = value
+    data_rows.append(row)
+
+# Create DataFrame
+df = pd.DataFrame(data_rows)
 
 print(f"Dataset shape: {df.shape}")
 print(f"\nFirst few rows:")
@@ -43,17 +64,25 @@ print(df.dtypes)
 print(f"\nMissing values:")
 print(df.isnull().sum())
 
+# Select only numeric columns for analysis
+df_numeric = df.select_dtypes(include=[np.number])
+print(f"\nNumeric columns selected: {df_numeric.columns.tolist()}")
+
+# Store non-numeric columns for later reference
+non_numeric_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
+print(f"Non-numeric columns (kept for reference): {non_numeric_cols}")
+
 # ============================================================================
 # CELL 3: Data Exploration & Visualization
 # ============================================================================
 
 # Summary statistics
 print("\n=== DATA SUMMARY ===")
-print(df.describe())
+print(df_numeric.describe())
 
 # Correlation matrix (to understand relationships)
 plt.figure(figsize=(12, 8))
-correlation_matrix = df.corr()
+correlation_matrix = df_numeric.corr()
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', center=0)
 plt.title("Parameter Correlations")
 plt.tight_layout()
@@ -63,38 +92,17 @@ plt.show()
 # CELL 4: Data Cleaning & Preprocessing
 # ============================================================================
 
-# Select parameters to use (CUSTOMIZE THIS BASED ON YOUR DATA)
-parameters_to_use = [
-    'airspeed',         # Your column names here
-    'altitude',
-    'vertical_speed',
-    'pitch',
-    'roll',
-    'yaw',
-    'engine_rpm',
-    'fuel_flow',
-    'oil_temp',
-    'oil_pressure',
-    'vibration_x',
-    'vibration_y',
-    'vibration_z',
-    'g_force_x',
-    'g_force_y',
-    'g_force_z'
-]
+# Use numeric columns only (non-numeric columns like timestamp and phase are reference data)
+df_selected = df_numeric.copy()
 
-# Filter to only available columns
-available_cols = [col for col in parameters_to_use if col in df.columns]
-df_selected = df[available_cols].copy()
-
-print(f"Using {len(available_cols)} parameters")
-print(f"Available: {available_cols}")
+print(f"Using {len(df_selected.columns)} numeric parameters")
+print(f"Available: {df_selected.columns.tolist()}")
 
 # Handle missing values
 print(f"\nMissing values before cleaning: {df_selected.isnull().sum().sum()}")
 
 # Forward fill then backward fill (for time series)
-df_selected = df_selected.fillna(method='ffill').fillna(method='bfill')
+df_selected = df_selected.ffill().bfill()
 
 # Remove rows still with NaN
 df_selected = df_selected.dropna()
@@ -124,7 +132,7 @@ for col in df_clean.columns:
         df_clean.loc[outliers_before, col] = np.nan
 
 # Fill the NaN values created by outlier removal
-df_clean = df_clean.fillna(method='ffill').fillna(method='bfill')
+df_clean = df_clean.ffill().bfill()
 
 print(f"\nDataset shape after outlier removal: {df_clean.shape}")
 

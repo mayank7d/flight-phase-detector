@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.decomposition import PCA
-from sklearn.covariance import EllipticCovariance
+from sklearn.covariance import EllipticEnvelope
 from sklearn.ensemble import IsolationForest
 import seaborn as sns
 from scipy.signal import medfilt
@@ -210,7 +210,7 @@ def detect_anomalies(df, method='isolation_forest'):
     
     elif method == 'elliptic_covariance':
         # Robust covariance estimation
-        detector = EllipticCovariance(random_state=42)
+        detector = EllipticEnvelope(random_state=42)
         detector.fit(df)
         anomalies = detector.predict(df)
         anomaly_scores = detector.decision_function(df)
