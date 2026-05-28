@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flight-phase-detector"
+version = "0.1.0"
+description = "Helicopter Flight Data Recorder (FDR) analysis using unsupervised machine learning for flight phase detection"
+readme = "README.md"
+license = {text = "LICENSE"}
+authors = [
+    {name = "Author", email = "email@example.com"},
+]
+requires-python = ">=3.8"
+keywords = ["helicopter", "flight-data-recorder", "machine-learning", "clustering", "anomaly-detection"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "pandas>=1.5.0",
+    "numpy>=1.24.0",
+    "scikit-learn>=1.2.0",
+    "matplotlib>=3.5.0",
+    "seaborn>=0.12.0",
+    "scipy>=1.10.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "flake8>=6.0",
+    "mypy>=1.0",
+]
+jupyter = [
+    "jupyter>=1.0",
+    "ipython>=8.0",
+    "notebook>=7.0",
+]
+docs = [
+    "sphinx>=6.0",
+    "sphinx-rtd-theme>=1.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-org/flight-phase-detector"
+Documentation = "https://github.com/your-org/flight-phase-detector#readme"
+Repository = "https://github.com/your-org/flight-phase-detector.git"
+Issues = "https://github.com/your-org/flight-phase-detector/issues"
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py10", "py11"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "--cov=src --cov-report=html --cov-report=term-missing"

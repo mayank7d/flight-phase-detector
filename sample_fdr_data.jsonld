@@ -1,0 +1,657 @@
+{
+  "@context": {
+    "@vocab": "http://example.org/helicopter-fdr/",
+    "schema": "http://schema.org/",
+    "qudt": "http://qudt.org/schema/qudt/",
+    "unit": "http://qudt.org/vocab/unit/",
+    "timestamp": {
+      "@id": "schema:DateTime",
+      "@type": "xsd:dateTime"
+    },
+    "flightId": "schema:identifier",
+    "aircraft": "schema:object",
+    "flightData": {
+      "@id": "schema:Dataset",
+      "@container": "@set"
+    }
+  },
+  "@type": "schema:Flight",
+  "@id": "http://example.org/flights/fdr-2026-05-28-001",
+  "flightId": "FDR-2026-05-28-001",
+  "schema:name": "Sample Helicopter Flight Data",
+  "schema:description": "Sample Flight Data Recorder data for helicopter analysis",
+  "aircraft": {
+    "@type": "schema:Vehicle",
+    "model": "Bell 407",
+    "serialNumber": "406-001",
+    "registrationNumber": "N12345"
+  },
+  "flightDuration": "PT45M30S",
+  "timestamp": "2026-05-28T14:30:00Z",
+  "flightData": [
+    {
+      "@type": "FlightDataPoint",
+      "sequence": 1,
+      "timestamp": "2026-05-28T14:30:00Z",
+      "airspeed": {
+        "value": 0,
+        "unit": "knots"
+      },
+      "altitude": {
+        "value": 500,
+        "unit": "feet"
+      },
+      "verticalSpeed": {
+        "value": 0,
+        "unit": "feet-per-minute"
+      },
+      "pitch": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "roll": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "yaw": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "engineRPM": {
+        "value": 1200,
+        "unit": "revolution-per-minute"
+      },
+      "fuelFlow": {
+        "value": 45,
+        "unit": "gallon-per-hour"
+      },
+      "rotorRPM": {
+        "value": 330,
+        "unit": "revolution-per-minute"
+      },
+      "oilTemperature": {
+        "value": 65,
+        "unit": "celsius"
+      },
+      "oilPressure": {
+        "value": 45,
+        "unit": "psi"
+      },
+      "vibrationX": {
+        "value": 0.2,
+        "unit": "g"
+      },
+      "vibrationY": {
+        "value": 0.1,
+        "unit": "g"
+      },
+      "vibrationZ": {
+        "value": 0.3,
+        "unit": "g"
+      },
+      "gForceX": {
+        "value": 0.1,
+        "unit": "g"
+      },
+      "gForceY": {
+        "value": 0.0,
+        "unit": "g"
+      },
+      "gForceZ": {
+        "value": 1.0,
+        "unit": "g"
+      },
+      "pedalAngle": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "phase": "ground-idle"
+    },
+    {
+      "@type": "FlightDataPoint",
+      "sequence": 2,
+      "timestamp": "2026-05-28T14:30:10Z",
+      "airspeed": {
+        "value": 5,
+        "unit": "knots"
+      },
+      "altitude": {
+        "value": 510,
+        "unit": "feet"
+      },
+      "verticalSpeed": {
+        "value": 200,
+        "unit": "feet-per-minute"
+      },
+      "pitch": {
+        "value": 5,
+        "unit": "degree"
+      },
+      "roll": {
+        "value": 2,
+        "unit": "degree"
+      },
+      "yaw": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "engineRPM": {
+        "value": 1800,
+        "unit": "revolution-per-minute"
+      },
+      "fuelFlow": {
+        "value": 65,
+        "unit": "gallon-per-hour"
+      },
+      "rotorRPM": {
+        "value": 344,
+        "unit": "revolution-per-minute"
+      },
+      "oilTemperature": {
+        "value": 72,
+        "unit": "celsius"
+      },
+      "oilPressure": {
+        "value": 52,
+        "unit": "psi"
+      },
+      "vibrationX": {
+        "value": 0.3,
+        "unit": "g"
+      },
+      "vibrationY": {
+        "value": 0.2,
+        "unit": "g"
+      },
+      "vibrationZ": {
+        "value": 0.4,
+        "unit": "g"
+      },
+      "gForceX": {
+        "value": 0.2,
+        "unit": "g"
+      },
+      "gForceY": {
+        "value": 0.1,
+        "unit": "g"
+      },
+      "gForceZ": {
+        "value": 1.1,
+        "unit": "g"
+      },
+      "pedalAngle": {
+        "value": 5,
+        "unit": "degree"
+      },
+      "phase": "climb"
+    },
+    {
+      "@type": "FlightDataPoint",
+      "sequence": 3,
+      "timestamp": "2026-05-28T14:31:00Z",
+      "airspeed": {
+        "value": 45,
+        "unit": "knots"
+      },
+      "altitude": {
+        "value": 1200,
+        "unit": "feet"
+      },
+      "verticalSpeed": {
+        "value": 150,
+        "unit": "feet-per-minute"
+      },
+      "pitch": {
+        "value": 8,
+        "unit": "degree"
+      },
+      "roll": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "yaw": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "engineRPM": {
+        "value": 2100,
+        "unit": "revolution-per-minute"
+      },
+      "fuelFlow": {
+        "value": 85,
+        "unit": "gallon-per-hour"
+      },
+      "rotorRPM": {
+        "value": 358,
+        "unit": "revolution-per-minute"
+      },
+      "oilTemperature": {
+        "value": 85,
+        "unit": "celsius"
+      },
+      "oilPressure": {
+        "value": 60,
+        "unit": "psi"
+      },
+      "vibrationX": {
+        "value": 0.4,
+        "unit": "g"
+      },
+      "vibrationY": {
+        "value": 0.3,
+        "unit": "g"
+      },
+      "vibrationZ": {
+        "value": 0.5,
+        "unit": "g"
+      },
+      "gForceX": {
+        "value": 0.3,
+        "unit": "g"
+      },
+      "gForceY": {
+        "value": 0.0,
+        "unit": "g"
+      },
+      "gForceZ": {
+        "value": 1.2,
+        "unit": "g"
+      },
+      "pedalAngle": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "phase": "climb"
+    },
+    {
+      "@type": "FlightDataPoint",
+      "sequence": 4,
+      "timestamp": "2026-05-28T14:32:00Z",
+      "airspeed": {
+        "value": 80,
+        "unit": "knots"
+      },
+      "altitude": {
+        "value": 1800,
+        "unit": "feet"
+      },
+      "verticalSpeed": {
+        "value": 50,
+        "unit": "feet-per-minute"
+      },
+      "pitch": {
+        "value": 4,
+        "unit": "degree"
+      },
+      "roll": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "yaw": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "engineRPM": {
+        "value": 2200,
+        "unit": "revolution-per-minute"
+      },
+      "fuelFlow": {
+        "value": 92,
+        "unit": "gallon-per-hour"
+      },
+      "rotorRPM": {
+        "value": 360,
+        "unit": "revolution-per-minute"
+      },
+      "oilTemperature": {
+        "value": 92,
+        "unit": "celsius"
+      },
+      "oilPressure": {
+        "value": 65,
+        "unit": "psi"
+      },
+      "vibrationX": {
+        "value": 0.35,
+        "unit": "g"
+      },
+      "vibrationY": {
+        "value": 0.25,
+        "unit": "g"
+      },
+      "vibrationZ": {
+        "value": 0.48,
+        "unit": "g"
+      },
+      "gForceX": {
+        "value": 0.2,
+        "unit": "g"
+      },
+      "gForceY": {
+        "value": 0.0,
+        "unit": "g"
+      },
+      "gForceZ": {
+        "value": 1.0,
+        "unit": "g"
+      },
+      "pedalAngle": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "phase": "cruise"
+    },
+    {
+      "@type": "FlightDataPoint",
+      "sequence": 5,
+      "timestamp": "2026-05-28T14:33:00Z",
+      "airspeed": {
+        "value": 90,
+        "unit": "knots"
+      },
+      "altitude": {
+        "value": 1950,
+        "unit": "feet"
+      },
+      "verticalSpeed": {
+        "value": 0,
+        "unit": "feet-per-minute"
+      },
+      "pitch": {
+        "value": 2,
+        "unit": "degree"
+      },
+      "roll": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "yaw": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "engineRPM": {
+        "value": 2250,
+        "unit": "revolution-per-minute"
+      },
+      "fuelFlow": {
+        "value": 95,
+        "unit": "gallon-per-hour"
+      },
+      "rotorRPM": {
+        "value": 360,
+        "unit": "revolution-per-minute"
+      },
+      "oilTemperature": {
+        "value": 95,
+        "unit": "celsius"
+      },
+      "oilPressure": {
+        "value": 68,
+        "unit": "psi"
+      },
+      "vibrationX": {
+        "value": 0.32,
+        "unit": "g"
+      },
+      "vibrationY": {
+        "value": 0.22,
+        "unit": "g"
+      },
+      "vibrationZ": {
+        "value": 0.45,
+        "unit": "g"
+      },
+      "gForceX": {
+        "value": 0.0,
+        "unit": "g"
+      },
+      "gForceY": {
+        "value": 0.0,
+        "unit": "g"
+      },
+      "gForceZ": {
+        "value": 1.0,
+        "unit": "g"
+      },
+      "pedalAngle": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "phase": "cruise"
+    },
+    {
+      "@type": "FlightDataPoint",
+      "sequence": 6,
+      "timestamp": "2026-05-28T14:38:00Z",
+      "airspeed": {
+        "value": 60,
+        "unit": "knots"
+      },
+      "altitude": {
+        "value": 1400,
+        "unit": "feet"
+      },
+      "verticalSpeed": {
+        "value": -200,
+        "unit": "feet-per-minute"
+      },
+      "pitch": {
+        "value": -6,
+        "unit": "degree"
+      },
+      "roll": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "yaw": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "engineRPM": {
+        "value": 1900,
+        "unit": "revolution-per-minute"
+      },
+      "fuelFlow": {
+        "value": 75,
+        "unit": "gallon-per-hour"
+      },
+      "rotorRPM": {
+        "value": 355,
+        "unit": "revolution-per-minute"
+      },
+      "oilTemperature": {
+        "value": 88,
+        "unit": "celsius"
+      },
+      "oilPressure": {
+        "value": 58,
+        "unit": "psi"
+      },
+      "vibrationX": {
+        "value": 0.38,
+        "unit": "g"
+      },
+      "vibrationY": {
+        "value": 0.28,
+        "unit": "g"
+      },
+      "vibrationZ": {
+        "value": 0.52,
+        "unit": "g"
+      },
+      "gForceX": {
+        "value": -0.1,
+        "unit": "g"
+      },
+      "gForceY": {
+        "value": 0.0,
+        "unit": "g"
+      },
+      "gForceZ": {
+        "value": 0.95,
+        "unit": "g"
+      },
+      "pedalAngle": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "phase": "descent"
+    },
+    {
+      "@type": "FlightDataPoint",
+      "sequence": 7,
+      "timestamp": "2026-05-28T14:39:00Z",
+      "airspeed": {
+        "value": 10,
+        "unit": "knots"
+      },
+      "altitude": {
+        "value": 600,
+        "unit": "feet"
+      },
+      "verticalSpeed": {
+        "value": -100,
+        "unit": "feet-per-minute"
+      },
+      "pitch": {
+        "value": -2,
+        "unit": "degree"
+      },
+      "roll": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "yaw": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "engineRPM": {
+        "value": 1400,
+        "unit": "revolution-per-minute"
+      },
+      "fuelFlow": {
+        "value": 50,
+        "unit": "gallon-per-hour"
+      },
+      "rotorRPM": {
+        "value": 340,
+        "unit": "revolution-per-minute"
+      },
+      "oilTemperature": {
+        "value": 78,
+        "unit": "celsius"
+      },
+      "oilPressure": {
+        "value": 48,
+        "unit": "psi"
+      },
+      "vibrationX": {
+        "value": 0.25,
+        "unit": "g"
+      },
+      "vibrationY": {
+        "value": 0.15,
+        "unit": "g"
+      },
+      "vibrationZ": {
+        "value": 0.35,
+        "unit": "g"
+      },
+      "gForceX": {
+        "value": 0.0,
+        "unit": "g"
+      },
+      "gForceY": {
+        "value": 0.0,
+        "unit": "g"
+      },
+      "gForceZ": {
+        "value": 1.0,
+        "unit": "g"
+      },
+      "pedalAngle": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "phase": "hover"
+    },
+    {
+      "@type": "FlightDataPoint",
+      "sequence": 8,
+      "timestamp": "2026-05-28T14:40:00Z",
+      "airspeed": {
+        "value": 0,
+        "unit": "knots"
+      },
+      "altitude": {
+        "value": 500,
+        "unit": "feet"
+      },
+      "verticalSpeed": {
+        "value": 0,
+        "unit": "feet-per-minute"
+      },
+      "pitch": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "roll": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "yaw": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "engineRPM": {
+        "value": 1200,
+        "unit": "revolution-per-minute"
+      },
+      "fuelFlow": {
+        "value": 45,
+        "unit": "gallon-per-hour"
+      },
+      "rotorRPM": {
+        "value": 330,
+        "unit": "revolution-per-minute"
+      },
+      "oilTemperature": {
+        "value": 70,
+        "unit": "celsius"
+      },
+      "oilPressure": {
+        "value": 45,
+        "unit": "psi"
+      },
+      "vibrationX": {
+        "value": 0.2,
+        "unit": "g"
+      },
+      "vibrationY": {
+        "value": 0.1,
+        "unit": "g"
+      },
+      "vibrationZ": {
+        "value": 0.3,
+        "unit": "g"
+      },
+      "gForceX": {
+        "value": 0.0,
+        "unit": "g"
+      },
+      "gForceY": {
+        "value": 0.0,
+        "unit": "g"
+      },
+      "gForceZ": {
+        "value": 1.0,
+        "unit": "g"
+      },
+      "pedalAngle": {
+        "value": 0,
+        "unit": "degree"
+      },
+      "phase": "ground-idle"
+    }
+  ]
+}
