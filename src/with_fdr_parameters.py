@@ -2,40 +2,45 @@
 Helicopter Flight Data Recorder (FDR) - Unsupervised Machine Learning Analysis
 ======================================================================
 This guide covers clustering, anomaly detection, and pattern recognition
+
+Data input: JSON-LD (.jsonld)
+----------------------------------------------------------------------
+NOTE: A separate conversion script is needed to produce the JSON-LD file
+      from your raw Excel FDR export before running this pipeline.
+      See the stub at the bottom of this file:
+          excel_to_jsonld()  ← YOU NEED TO WRITE / FILL IN THIS FUNCTION
 """
 
+import json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler, RobustScaler
+from sklearn.preprocessing import RobustScaler
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.decomposition import PCA
 from sklearn.covariance import EllipticEnvelope
 from sklearn.ensemble import IsolationForest
-import seaborn as sns
-from scipy.signal import medfilt
 
 # ============================================================================
 # PARAMETER REGISTRY
 # ============================================================================
 #
 # Each entry maps a canonical name to:
-#   - 'columns'     : list of possible column names in your CSV (checked in order)
+#   - 'columns'     : possible key names inside each JSON-LD observation object
+#                     (checked in order, case-insensitive)
 #   - 'description' : human-readable label
 #   - 'required'    : if True, a warning is raised when the parameter is absent
 #
 # HOW MISSING PARAMETERS ARE HANDLED
 # ------------------------------------
-# 1. The loader tries every alias in 'columns' against your CSV headers.
+# 1. The loader tries every alias against the keys present in the JSON-LD data.
 # 2. If none match, the parameter is simply skipped — no crash.
-# 3. At startup a summary is printed showing which params were FOUND vs MISSING.
-# 4. Downstream steps (normalisation, clustering, anomaly detection) work on
-#    whatever subset was found, so the pipeline always runs.
-# 5. Parameters marked required=True get an extra WARNING in the summary so you
-#    know a critical signal is absent.
+# 3. At startup a summary prints which params were FOUND vs MISSING.
+# 4. Downstream steps work on whatever subset was found.
+# 5. Parameters marked required=True get an extra WARNING in the summary.
 #
 # TO ADD A NEW PARAMETER: append a new dict to PARAMETER_REGISTRY below.
-# TO RENAME A CSV COLUMN:  add its exact CSV header to the 'columns' list.
+# TO RENAME A JSON-LD KEY:  add its exact key name to the 'columns' list.
 
 PARAMETER_REGISTRY = [
     # ── Attitude ──────────────────────────────────────────────────────────────
@@ -163,17 +168,134 @@ PARAMETER_REGISTRY = [
 
 
 # ============================================================================
-# 1. DATA LOADING AND INITIAL EXPLORATION
+# EXCEL → JSON-LD CONVERSION  (STUB — YOU NEED TO WRITE THIS)
+# ============================================================================
+#
+# TODO: Write a conversion script that reads your Excel FDR export and
+#       produces a JSON-LD file in the format expected by load_fdr_jsonld()
+#       below before running this ML pipeline.
+#
+# Expected JSON-LD structure this pipeline reads:
+#
+# {
+#   "@context": {
+#     "fdr":  "https://example.org/fdr#",
+#     "xsd":  "http://www.w3.org/2001/XMLSchema#",
+#     "theta": "fdr:theta",
+#     "phi":   "fdr:phi",
+#     ... (one entry per parameter)
+#   },
+#   "@graph": [
+#     {
+#       "@type": "fdr:Observation",
+#       "timestamp": "2024-01-01T00:00:00Z",
+#       "theta": 2.1,
+#       "phi":  -0.5,
+#       "psi":  185.3,
+#       "nf":   102.4,
+#       "airspeed": 80.0,
+#       ... (any subset of parameters is fine — missing ones are handled)
+#     },
+#     { ... },   ← one object per time-step / sample
+#     ...
+#   ]
+# }
+#
+# SUGGESTED LIBRARIES FOR THE CONVERSION SCRIPT:
+#   pip install openpyxl pandas pyld
+#
+# ROUGH OUTLINE OF excel_to_jsonld():
+#   1. pd.read_excel(excel_path)           — load the sheet
+#   2. rename columns to match aliases     — align to PARAMETER_REGISTRY keys
+#   3. df.to_dict(orient='records')        — list of row dicts
+#   4. wrap in @context + @graph skeleton  — add JSON-LD envelope
+#   5. json.dump(...)                      — write to .jsonld file
+
+def excel_to_jsonld(excel_path, jsonld_path):
+    """
+    STUB — convert an Excel FDR export to a JSON-LD file.
+
+    YOU NEED TO IMPLEMENT THIS based on your specific Excel layout.
+    See the format notes in the block comment above.
+    """
+    raise NotImplementedError(
+        "excel_to_jsonld() is not yet implemented.\n"
+        "Write this function to convert your Excel FDR export to JSON-LD,\n"
+        f"then call: excel_to_jsonld('{excel_path}', '{jsonld_path}')\n"
+        "before running run_complete_analysis()."
+    )
+
+
+# ============================================================================
+# 1. DATA LOADING FROM JSON-LD
 # ============================================================================
 
-def load_fdr_data(file_path):
-    """Load FDR data from CSV"""
-    df = pd.read_csv(file_path)
-    print(f"Data shape: {df.shape}")
-    print(f"\nColumns: {df.columns.tolist()}")
-    print(f"\nFirst few rows:\n{df.head()}")
-    print(f"\nData types:\n{df.dtypes}")
-    print(f"\nMissing values:\n{df.isnull().sum()}")
+def load_fdr_jsonld(file_path):
+    """
+    Load FDR data from a JSON-LD file and return a flat DataFrame.
+
+    The function handles two common JSON-LD layouts:
+
+    Layout A — @graph array (preferred):
+        { "@context": {...}, "@graph": [ {obs1}, {obs2}, ... ] }
+
+    Layout B — top-level array:
+        [ {obs1}, {obs2}, ... ]
+
+    Each observation object becomes one row in the DataFrame.
+    '@type', '@id', and '@context' keys are automatically dropped.
+    'timestamp' (if present) is parsed as a datetime index.
+    """
+    print(f"Loading JSON-LD file: {file_path}")
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        raw = json.load(f)
+
+    # ── Extract the list of observation records ───────────────────────────────
+    if isinstance(raw, dict):
+        if "@graph" in raw:
+            # Layout A: standard JSON-LD with @graph
+            records = raw["@graph"]
+        else:
+            # Single observation wrapped in a dict — treat as one-row dataset
+            records = [raw]
+    elif isinstance(raw, list):
+        # Layout B: bare array of observations
+        records = raw
+    else:
+        raise ValueError(
+            "Unrecognised JSON-LD structure. Expected a dict with '@graph' "
+            "or a top-level array of observation objects."
+        )
+
+    print(f"  Found {len(records)} observation records in JSON-LD file")
+
+    # ── Flatten records to a DataFrame ───────────────────────────────────────
+    # Strip JSON-LD meta-keys that are not data fields
+    _skip = {"@type", "@id", "@context"}
+    clean_records = [
+        {k: v for k, v in rec.items() if k not in _skip}
+        for rec in records
+    ]
+
+    df = pd.DataFrame(clean_records)
+
+    # ── Parse timestamp as index if present ──────────────────────────────────
+    if "timestamp" in df.columns:
+        try:
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            df = df.set_index("timestamp").sort_index()
+            print("  Timestamp column parsed and set as index")
+        except Exception as e:
+            print(f"  Warning: could not parse timestamp column — {e}")
+
+    # ── Convert all data columns to numeric (coerce non-numeric to NaN) ───────
+    for col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    print(f"  Data shape after loading: {df.shape}")
+    print(f"  Columns found: {df.columns.tolist()}")
+    print(f"\nMissing values per column:\n{df.isnull().sum()}")
     return df
 
 
@@ -183,14 +305,14 @@ def load_fdr_data(file_path):
 
 def _resolve_parameters(df_columns, registry=PARAMETER_REGISTRY):
     """
-    Match registry entries to actual CSV columns.
+    Match registry entries to actual DataFrame columns (from JSON-LD keys).
 
     Returns
     -------
-    column_map : dict  {canonical_name: actual_csv_column}
-    missing    : list  canonical names with no match (warnings printed for required ones)
+    column_map : dict  {canonical_name: actual_column}
+    missing    : list  canonical names with no match
     """
-    df_cols_lower = {c.lower(): c for c in df_columns}   # case-insensitive lookup
+    df_cols_lower = {c.lower(): c for c in df_columns}
     column_map = {}
     missing = []
 
@@ -201,7 +323,6 @@ def _resolve_parameters(df_columns, registry=PARAMETER_REGISTRY):
     for param in registry:
         matched_col = None
         for alias in param["columns"]:
-            # Try exact match first, then case-insensitive
             if alias in df_columns:
                 matched_col = alias
                 break
@@ -219,8 +340,11 @@ def _resolve_parameters(df_columns, registry=PARAMETER_REGISTRY):
 
     print(f"\n  Found: {len(column_map)} / {len(registry)} parameters")
     if not column_map:
-        raise ValueError("No registered parameters found in the CSV. "
-                         "Check column names or update PARAMETER_REGISTRY.")
+        raise ValueError(
+            "No registered parameters found in the JSON-LD data. "
+            "Check the key names in your JSON-LD file and update "
+            "PARAMETER_REGISTRY if needed."
+        )
     return column_map, missing
 
 
@@ -230,26 +354,23 @@ def preprocess_fdr_data(df, extra_columns=None):
 
     Parameters
     ----------
-    df             : raw DataFrame from load_fdr_data()
-    extra_columns  : list of additional CSV column names to include as-is
-                     (useful for one-off columns not in the registry)
+    df             : raw DataFrame from load_fdr_jsonld()
+    extra_columns  : list of additional column names to include as-is
 
     Returns
     -------
-    df_subset      : cleaned DataFrame using only resolved columns
-    column_map     : dict mapping canonical name → actual CSV column used
-    missing        : list of canonical names that were absent from the CSV
+    df_subset  : cleaned DataFrame with canonical column names
+    column_map : dict mapping canonical name → actual column used
+    missing    : list of canonical names absent from the data
     """
-    # Resolve registry → actual CSV columns
     column_map, missing = _resolve_parameters(df.columns.tolist())
 
-    # Build working DataFrame from resolved columns
-    # Use canonical names as column labels for consistency downstream
+    # Build working DataFrame using canonical names
     df_subset = pd.DataFrame(index=df.index)
-    for canonical, csv_col in column_map.items():
-        df_subset[canonical] = df[csv_col].copy()
+    for canonical, src_col in column_map.items():
+        df_subset[canonical] = df[src_col].copy()
 
-    # Optionally include extra columns the user specifies by CSV name
+    # Include any extra columns the caller requested
     if extra_columns:
         for col in extra_columns:
             if col in df.columns:
@@ -258,10 +379,10 @@ def preprocess_fdr_data(df, extra_columns=None):
             else:
                 print(f"  ! extra column '{col}' not found in data — skipped")
 
-    # ── Handle missing values (forward-fill, then back-fill for time series) ──
+    # Fill gaps (forward-fill then back-fill — good for time-series dropouts)
     df_subset = df_subset.ffill().bfill()
 
-    # ── Remove extreme outliers (3 × IQR) and interpolate over them ──────────
+    # Remove extreme outliers (3 × IQR) and interpolate over them
     for col in df_subset.columns:
         Q1, Q3 = df_subset[col].quantile([0.25, 0.75])
         IQR = Q3 - Q1
@@ -277,8 +398,8 @@ def preprocess_fdr_data(df, extra_columns=None):
 
 def normalize_data(df):
     """
-    Normalize data for ML.
-    RobustScaler is used because FDR data often contains residual outliers.
+    Normalise with RobustScaler (median + IQR — resistant to residual outliers).
+    Must be called before any distance-based ML algorithm.
     """
     scaler = RobustScaler()
     df_normalized = pd.DataFrame(
@@ -301,15 +422,10 @@ def engineer_features(df, window_size=10):
     df_engineered = df.copy()
 
     for col in df.columns:
-        # Rolling mean (trend / smoothed signal)
         df_engineered[f'{col}_rmean'] = \
             df[col].rolling(window=window_size, center=True).mean()
-
-        # Rolling std (variability — high during manoeuvres)
         df_engineered[f'{col}_rstd'] = \
             df[col].rolling(window=window_size, center=True).std()
-
-        # First and second derivative (rate of change)
         df_engineered[f'{col}_d1'] = df[col].diff()
         df_engineered[f'{col}_d2'] = df[col].diff().diff()
 
@@ -318,7 +434,7 @@ def engineer_features(df, window_size=10):
 
 
 # ============================================================================
-# 4. CLUSTERING - IDENTIFY FLIGHT PHASES
+# 4. CLUSTERING — IDENTIFY FLIGHT PHASES
 # ============================================================================
 
 def clustering_analysis(df, n_clusters=4, method='kmeans'):
@@ -330,7 +446,6 @@ def clustering_analysis(df, n_clusters=4, method='kmeans'):
       1 – Climb          (positive vertical speed, increasing altitude)
       2 – Cruise         (steady airspeed, stable altitude)
       3 – Descent        (negative vertical speed, decreasing altitude)
-      (extra) Manoeuvre  (rapid changes in theta / phi / p / q)
     """
     if method == 'kmeans':
         clusterer = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
@@ -358,7 +473,7 @@ def clustering_analysis(df, n_clusters=4, method='kmeans'):
 def detect_anomalies(df, method='isolation_forest'):
     """
     Detect unusual flight patterns that may indicate:
-      - Mechanical issues (NF/NG exceedances, vibration spikes)
+      - Mechanical issues (NF/NG exceedances)
       - Unusual manoeuvres or pilot training events
       - Sensor faults (stuck or frozen values)
     """
@@ -385,7 +500,7 @@ def detect_anomalies(df, method='isolation_forest'):
 # ============================================================================
 
 def apply_pca(df, n_components=2):
-    """Reduce to 2D for visualisation."""
+    """Reduce to 2D for visualisation only (not used for clustering itself)."""
     pca = PCA(n_components=n_components)
     df_pca = pca.fit_transform(df)
     print(f"\nPCA explained variance: {pca.explained_variance_ratio_}")
@@ -408,9 +523,10 @@ def visualize_clusters(df_pca, clusters, title="Flight Clusters"):
 def visualize_anomalies(df_pca, anomalies, title="Anomaly Detection"):
     plt.figure(figsize=(10, 7))
     normal = anomalies == 1
-    plt.scatter(df_pca[normal,  0], df_pca[normal,  1], c='blue', alpha=0.5, label='Normal')
-    plt.scatter(df_pca[~normal, 0], df_pca[~normal, 1], c='red',  marker='X',
-                s=200, label='Anomaly')
+    plt.scatter(df_pca[normal,  0], df_pca[normal,  1],
+                c='blue', alpha=0.5, label='Normal')
+    plt.scatter(df_pca[~normal, 0], df_pca[~normal, 1],
+                c='red', marker='X', s=200, label='Anomaly')
     plt.xlabel('PC1'); plt.ylabel('PC2')
     plt.legend(); plt.title(title); plt.tight_layout()
     plt.savefig('/mnt/user-data/outputs/anomalies_visualization.png', dpi=300)
@@ -443,13 +559,13 @@ def analyze_cluster_characteristics(df_original, clusters):
 
 def detect_time_series_anomalies(df, window_size=50):
     """
-    Z-score based anomaly detection using rolling statistics.
-    Catches sudden spikes / drops in any channel (e.g. NF drop, pitch exceedance).
+    Rolling Z-score anomaly detection — catches sudden spikes within a phase
+    (e.g. brief NF drop during cruise) that global detectors might miss.
     """
     scores = pd.DataFrame(index=df.index)
     for col in df.columns:
-        rm  = df[col].rolling(window=window_size, center=True).mean()
-        rs  = df[col].rolling(window=window_size, center=True).std()
+        rm = df[col].rolling(window=window_size, center=True).mean()
+        rs = df[col].rolling(window=window_size, center=True).std()
         scores[f'{col}_zscore'] = np.abs((df[col] - rm) / rs)
     scores['overall_score'] = scores.mean(axis=1)
     return scores
@@ -461,29 +577,28 @@ def detect_time_series_anomalies(df, window_size=50):
 
 def run_complete_analysis(file_path, n_clusters=4, extra_columns=None):
     """
-    Run the full unsupervised ML pipeline on FDR data.
+    Run the full unsupervised ML pipeline on FDR data from a JSON-LD file.
 
     Parameters
     ----------
-    file_path      : path to the CSV file
-    n_clusters     : number of KMeans clusters
-    extra_columns  : list of additional CSV column names to include
-                     alongside the registered parameters
+    file_path     : path to the .jsonld file
+    n_clusters    : number of KMeans clusters (try 4–6 for typical flights)
+    extra_columns : list of JSON-LD key names to include alongside
+                    the registered parameters (e.g. ["torque", "oat"])
     """
     print("=" * 70)
     print("HELICOPTER FDR – UNSUPERVISED MACHINE LEARNING ANALYSIS")
     print("=" * 70)
 
-    # 1. Load
-    print("\n[1/7] Loading data...")
-    df_raw = load_fdr_data(file_path)
+    # 1. Load JSON-LD
+    print("\n[1/7] Loading JSON-LD data...")
+    df_raw = load_fdr_jsonld(file_path)
 
-    # 2. Preprocess  (auto-resolves parameters; handles missing ones gracefully)
+    # 2. Preprocess (resolves parameter names; handles missing ones gracefully)
     print("\n[2/7] Preprocessing...")
     df_clean, column_map, missing_params = preprocess_fdr_data(
         df_raw, extra_columns=extra_columns
     )
-
     if missing_params:
         print(f"\n  ℹ  Continuing without: {missing_params}")
 
@@ -496,7 +611,7 @@ def run_complete_analysis(file_path, n_clusters=4, extra_columns=None):
     df_feat = engineer_features(df_clean)
     df_feat_norm, _ = normalize_data(df_feat)
 
-    # 5. PCA
+    # 5. PCA (for visualisation only)
     print("\n[5/7] Applying PCA...")
     df_pca, pca_model = apply_pca(df_norm, n_components=2)
 
@@ -526,10 +641,10 @@ def run_complete_analysis(file_path, n_clusters=4, extra_columns=None):
         'ts_anomalies':    ts_anomalies,
         'pca_data':        df_pca,
         'models': {
-            'kmeans':         kmeans_model,
+            'kmeans':           kmeans_model,
             'isolation_forest': iso_forest,
-            'pca':            pca_model,
-            'scaler':         scaler,
+            'pca':              pca_model,
+            'scaler':           scaler,
         },
     }
 
@@ -539,27 +654,38 @@ def run_complete_analysis(file_path, n_clusters=4, extra_columns=None):
 # ============================================================================
 
 if __name__ == "__main__":
-    fdr_file = "path/to/your/helicopter_fdr_data.csv"
+
+    # ── STEP 0 (one-time): convert your Excel export to JSON-LD ──────────────
+    #
+    # TODO: implement excel_to_jsonld() above, then uncomment:
+    # excel_to_jsonld(
+    #     excel_path="path/to/your/fdr_export.xlsx",
+    #     jsonld_path="path/to/your/fdr_data.jsonld",
+    # )
+
+    # ── STEP 1: run the ML pipeline on the JSON-LD file ──────────────────────
+    fdr_file = "path/to/your/fdr_data.jsonld"
 
     # results = run_complete_analysis(fdr_file, n_clusters=4)
 
-    # If your CSV has extra columns not in the registry, pass them explicitly:
+    # To include extra parameters not in the registry:
     # results = run_complete_analysis(fdr_file, extra_columns=["torque", "oat"])
 
     print("""
     ========== QUICK START GUIDE ==========
 
-    1. Put your CSV path in fdr_file above.
+    1. Implement excel_to_jsonld() to convert your Excel FDR export.
+       See the format comment above that function for the expected structure.
 
-    2. Check column names — the registry tries many aliases automatically.
-       If a column is still not found, add its exact CSV header to the
-       relevant 'columns' list in PARAMETER_REGISTRY near the top of this file.
+    2. Run the conversion (once per flight file):
+         excel_to_jsonld('export.xlsx', 'fdr_data.jsonld')
 
-    3. Run:
-         results = run_complete_analysis('your_file.csv', n_clusters=4)
+    3. Run the analysis:
+         results = run_complete_analysis('fdr_data.jsonld', n_clusters=4)
 
-    4. The console will print which parameters were FOUND vs MISSING so you
-       can see exactly what the analysis is working with.
+    4. The console will print which parameters were FOUND vs MISSING.
+       If a key is not found, add its exact name to the relevant
+       'columns' list in PARAMETER_REGISTRY at the top of this file.
 
     5. Access results:
          clusters  = results['clusters']
