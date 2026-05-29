@@ -23,7 +23,7 @@ def clean(val):
     return val
 
 def convert(df):
-    rows = df.applymap(clean).to_dict(orient="records")
+    rows = df.map(clean).to_dict(orient="records")
     if NA_STRATEGY == "drop":
         rows = [{k: v for k, v in r.items() if v is not None} for r in rows]
     elif NA_STRATEGY == "empty":
