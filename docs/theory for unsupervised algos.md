@@ -130,7 +130,7 @@ Better clustering
 
 The clustering process after initialization is exactly K-Means.
 
-##basically
+## basically
 
 K-Means++ is a centroid-based clustering algorithm that partitions data into K clusters by minimizing within-cluster variance. It requires the number of clusters beforehand and works best for spherical clusters. The "++" refers to a smart initialization strategy for centroids.
 
