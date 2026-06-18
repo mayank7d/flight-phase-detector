@@ -1,9 +1,4 @@
-Conversation with Gemini
-Return this text as an md file
 
-(MP2HY0HG)
-
-Davies_boulidin score
 
 Fourier transform breaks down a complex signal into its individual pure frequencies
 
